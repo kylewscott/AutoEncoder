@@ -15,26 +15,23 @@ int main() {
     //open file
     nums.open(filePath);
 
-    //make sure file is opening
-    if(nums.fail()){
-        cout << "Unable to open file " << filePath;
-        return 1;
-    }
-
     //Take in the first row of labels
     string str;
     getline(nums, str);
 
+    //create vector to store values
     vector <string> column;
 
+    //add first column of data into column
     while(getline(nums, str)){
         getline(nums, str, ',');
         column.push_back(str);
     }
+    //print out column
     for(int i = 0; i < column.size(); i++){
         cout << column[i];
     }
-
+    //double check size
     cout << ", " << column.size();
 
     return 0;
