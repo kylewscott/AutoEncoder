@@ -20,16 +20,20 @@ int main() {
     getline(nums, str);
 
     //create vector to store values
-    vector <string> column;
+    vector <int> column;
 
     //add first column of data into column
     while(getline(nums, str)){
         getline(nums, str, ',');
-        column.push_back(str);
+        stringstream s;
+        s  << str;
+        int number;
+        s >> number;
+        column.push_back(number);
     }
     //print out column
     for(int i = 0; i < column.size(); i++){
-        cout << column[i];
+        cout << column[i] << " ";
     }
     //double check size
     cout << ", " << column.size();
