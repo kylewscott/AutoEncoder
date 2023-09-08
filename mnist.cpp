@@ -25,18 +25,42 @@ int main() {
     //add first column of data into column
     while(getline(nums, str)){
         getline(nums, str, ',');
+        //convert string to int
         stringstream s;
         s  << str;
         int number;
         s >> number;
+        //put int into column
         column.push_back(number);
     }
-    //print out column
-    for(int i = 0; i < column.size(); i++){
-        cout << column[i] << " ";
+
+    //vector<vector<int>> matrix;
+    int matrix[28][28];
+    int k = 0;
+
+    for(int i = 0; i < 28; i++){
+        for(int j = 0; j < 28; j++){
+            matrix[i][j] = column[k];
+            k++;
+        }
     }
-    //double check size
-    cout << ", " << column.size();
+
+    for(int i = 0; i < 28; i++){
+        for(int j = 0; j < 28; j++){
+            cout << matrix[i][j];
+        }
+    }
+
+
+
+
+    //testing
+    // //print out column
+    // for(int i = 0; i < column.size(); i++){
+    //     cout << column[i] << " ";
+    // }
+    // //double check size
+    // cout << ", " << column.size();
 
     return 0;
 
