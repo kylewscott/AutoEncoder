@@ -34,33 +34,26 @@ int main() {
         column.push_back(number);
     }
 
-    //vector<vector<int>> matrix;
-    int matrix[28][28];
+    //create matrix for column to go into
+    double matrix[28][28];
     int k = 0;
 
+    //add values from column to matrix
     for(int i = 0; i < 28; i++){
         for(int j = 0; j < 28; j++){
-            matrix[i][j] = column[k];
+            //normalize data
+            double num = column[k] / 255.0;
+            matrix[i][j] = num;
             k++;
         }
     }
 
+    //print out matrix
     for(int i = 0; i < 28; i++){
         for(int j = 0; j < 28; j++){
-            cout << matrix[i][j];
+            cout << matrix[i][j] << " ";
         }
     }
-
-
-
-
-    //testing
-    // //print out column
-    // for(int i = 0; i < column.size(); i++){
-    //     cout << column[i] << " ";
-    // }
-    // //double check size
-    // cout << ", " << column.size();
 
     return 0;
 
