@@ -19,40 +19,24 @@ int main() {
     string str;
     getline(nums, str);
 
-    //create vector to store values
-    vector <int> column;
+    //1d vector to store entire mnist dataset
+    vector<double> data;
 
-    //add first column of data into column
-    while(getline(nums, str)){
-        getline(nums, str, ',');
-        //convert string to int
-        stringstream s;
-        s  << str;
-        int number;
-        s >> number;
-        //put int into column
-        column.push_back(number);
-    }
-
-    //create matrix for column to go into
-    double matrix[28][28];
-    int k = 0;
-
-    //add values from column to matrix
-    for(int i = 0; i < 28; i++){
-        for(int j = 0; j < 28; j++){
-            //normalize data
-            double num = column[k] / 255.0;
-            matrix[i][j] = num;
-            k++;
+    //add mnist data to data
+    while(nums >> str){
+        int temp;
+        stringstream s(str);
+        while(s >> temp){
+            string stemp;
+            double number = temp / 255.0; //normalize data
+            data.push_back(number);
+            getline(s, stemp, ',');
         }
     }
 
-    //print out matrix
-    for(int i = 0; i < 28; i++){
-        for(int j = 0; j < 28; j++){
-            cout << matrix[i][j] << " ";
-        }
+    //check data was put in correctly
+    for(int i = 0; i < data.size(); i++){
+        cout << data[i] << " ";
     }
 
     return 0;
