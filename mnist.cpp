@@ -7,12 +7,9 @@
 
 using namespace std;    
 
-int main() {
-    //bring in mnist file and store in nums
-    string filePath = "mnist_train.csv";
-    ifstream nums;
-
+vector<double> loadData(string filePath){
     //open file
+    ifstream nums;
     nums.open(filePath);
 
     //Take in the first row of labels
@@ -33,6 +30,14 @@ int main() {
             getline(s, stemp, ',');
         }
     }
+    
+    return data;
+
+}
+
+int main() {
+    //load mnist
+    vector<double> data = loadData("mnist_train.csv");
 
     //check data was put in correctly
     for(int i = 0; i < data.size(); i++){
