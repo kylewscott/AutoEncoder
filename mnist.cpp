@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <autoEncoder.h>
 
 
 using namespace std;    
