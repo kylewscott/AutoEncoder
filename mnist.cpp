@@ -3,11 +3,15 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <autoEncoder.h>
+// #include <autoEncoder.h>
+#include <C:\eigen-3.4.0\Eigen\Dense>
+
 
 
 using namespace std;    
+using namespace Eigen;
 
+int numRow;
 vector<double> loadData(string filePath){
     //open file
     ifstream nums;
@@ -30,6 +34,7 @@ vector<double> loadData(string filePath){
             data.push_back(number);
             getline(s, stemp, ',');
         }
+        numRow++;
     }
     
     return data;
@@ -40,10 +45,9 @@ int main() {
     //load mnist
     vector<double> data = loadData("mnist_train.csv");
 
-    //check data was put in correctly
-    for(int i = 0; i < data.size(); i++){
-        cout << data[i] << " ";
-    }
+    //Turn data into a matrix and print out
+    MatrixXd matrix = Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
+    cout << matrix;
 
     return 0;
 
