@@ -3,7 +3,6 @@
 #include <string>
 #include <sstream>
 #include <vector>
-//#include <autoEncoder.h>
 #include <C:\eigen-3.4.0\Eigen\Dense>
 
 using namespace std;    
@@ -48,8 +47,11 @@ MatrixXd sigmoid(MatrixXd x){
     return x;
 }
 
-double sigmoidPrime(double x){
-    return x * (1-x);
+MatrixXd sigmoidPrime(MatrixXd x){
+    for(int i = 0; i < x.size(); i++){
+        x(i) = x(i) * (1-x(i));
+    }
+    return x;
 }
 
 MatrixXd relu(MatrixXd x){
@@ -59,13 +61,16 @@ MatrixXd relu(MatrixXd x){
     return x;
 }
 
-double reluPrime(double x){
-    if(x < 0){
-        return 0;
+MatrixXd reluPrime(MatrixXd x){
+    for(int i = 0; i < x.size(); i++){
+        if(x(i) < 0){
+            x(i) = 0;
+        }
+        else{
+            x(i) = 1;
+        }
     }
-    else{
-        return 1;
-    }
+    return x;
 }
 
 //Autoencoder
@@ -92,8 +97,6 @@ void autoencoder(MatrixXd m, double learningRate, int epochs){
     //input to output size of 10
     MatrixXd z3 = weight3 * a2;
     MatrixXd a3 = sigmoid(z3);
-
-    cout << a3;
     
 
 }
@@ -104,10 +107,8 @@ int main() {
 
     //Turn data into a matrix and print out
     MatrixXd matrix = Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
-    // for(int i = 0; i < 784; i++){
-    //     cout << matrix.coeff(i,3) << ", ";
-    // } 
 
+    //Call autoencoder function with mnist dataset
     autoencoder(matrix.col(1), 0.01, 10);
 
     return 0;
