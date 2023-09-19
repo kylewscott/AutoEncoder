@@ -50,6 +50,8 @@ int autoencoder(vector<double> mnist, double learningRate, int epochs){
         //update the weights and biases
         //print out accuracy
     }
+
+    return 0;
 }
 
 
