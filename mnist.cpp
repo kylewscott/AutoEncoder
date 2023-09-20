@@ -39,6 +39,33 @@ vector<double> loadData(string filePath){
 
 }
 
+//function to load in labels as 1d vector
+vector<int> loadLabels(string filepath){
+    //open file
+    ifstream label;
+    label.open(filepath);
+
+    //take in first row
+    string str;
+    getline(label, str);
+
+    //create output vector
+    vector<int> labels;
+
+    //add each label into label
+    while(label >> str){
+        int temp;
+        stringstream s(str);
+        while(s >> temp){
+            string stemp;
+            int number = temp;
+            labels.push_back(number);
+            getline(s, stemp);
+        }
+    }
+    return labels;
+}
+
 //Activation functions
 MatrixXd sigmoid(MatrixXd x){
     for(int i = 0; i < x.size(); i++){
@@ -74,7 +101,7 @@ MatrixXd reluPrime(MatrixXd x){
 }
 
 //Autoencoder
-void autoencoder(MatrixXd m, double learningRate, int epochs){
+void autoencoder(MatrixXd m, vector<int> labels, double learningRate, int epochs){
     //Weight 1, weights in between input and hidden layer 1
     MatrixXd weight1 = MatrixXd::Random(128, 784);
     weight1 = (weight1 +  MatrixXd::Constant(128, 784, 1.))*sqrt(2.0/784);
@@ -103,6 +130,7 @@ void autoencoder(MatrixXd m, double learningRate, int epochs){
 
 }
 
+//Function to put specified digit into digit.csv 
 void plotDigitInput(MatrixXd m, int index){
     ofstream outputfile("digit.csv", ios::out);
     for(int i = 0; i < 784; i ++){
@@ -112,15 +140,18 @@ void plotDigitInput(MatrixXd m, int index){
 }
 
 int main() {
-    //load mnist
+    //load mnist data and labels
     vector<double> data = loadData("mnist_train.csv");
+    vector<int> labels = loadLabels("mnist_train_targets.csv");
 
     //Turn data into a matrix and print out
     MatrixXd matrix = Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
 
     //Call autoencoder function with mnist dataset
-    //autoencoder(matrix.col(1), 0.01, 10);
+    autoencoder(matrix.col(1), labels, 0.01, 10);
+    //put specidifed digit into digit.csv
     plotDigitInput(matrix, 4);
+    
 
     return 0;
 
