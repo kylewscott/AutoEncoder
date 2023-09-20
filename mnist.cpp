@@ -84,21 +84,31 @@ void autoencoder(MatrixXd m, double learningRate, int epochs){
     //Weight 3, weights in between hidden layer 2 and output
     MatrixXd weight3 = MatrixXd::Random(10, 64);
     weight3 = (weight3 + MatrixXd::Constant(10, 64, 1.))*sqrt(2.0/64);
+    double bias = 0.1;
 
     //Forward propagate
     //input layer size of 784
     MatrixXd a0 = m;
     //input to hidden layer 1 size of 128
     MatrixXd z1 = weight1 * a0;
-    MatrixXd a1 = relu(z1);
+    MatrixXd a1 = sigmoid(z1);
     //input to hidden layer 2 size of 64
     MatrixXd z2 = weight2 * a1;
-    MatrixXd a2 = relu(z2);
+    MatrixXd a2 = sigmoid(z2);
     //input to output size of 10
     MatrixXd z3 = weight3 * a2;
     MatrixXd a3 = sigmoid(z3);
+    cout << z3 << "\n\n" << a3;
     
 
+}
+
+void plotDigitInput(MatrixXd m, int index){
+    ofstream outputfile("digit.csv", ios::out);
+    for(int i = 0; i < 784; i ++){
+        outputfile << m.coeff(i, index) << ",";
+    }
+    outputfile.close();
 }
 
 int main() {
@@ -109,7 +119,8 @@ int main() {
     MatrixXd matrix = Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
 
     //Call autoencoder function with mnist dataset
-    autoencoder(matrix.col(1), 0.01, 10);
+    //autoencoder(matrix.col(1), 0.01, 10);
+    plotDigitInput(matrix, 4);
 
     return 0;
 
