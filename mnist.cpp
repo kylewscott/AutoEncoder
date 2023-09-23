@@ -41,7 +41,7 @@ vector<double> loadData(string filePath){
 }
 
 //function to load in labels as 1d vector
-vector<int> loadLabels(string filepath){
+vector<double> loadLabels(string filepath){
     //open file
     ifstream label;
     label.open(filepath);
@@ -51,7 +51,7 @@ vector<int> loadLabels(string filepath){
     getline(label, str);
 
     //create output vector
-    vector<int> labels;
+    vector<double> labels;
 
     //add each label into label
     while(label >> str){
@@ -59,7 +59,7 @@ vector<int> loadLabels(string filepath){
         stringstream s(str);
         while(s >> temp){
             string stemp;
-            int number = temp;
+            double number = temp;
             labels.push_back(number);
             getline(s, stemp);
         }
@@ -112,25 +112,25 @@ MatrixXd softMax(MatrixXd x){
     return x;
 }
 
-//Autoencoder
-void autoencoder(MatrixXd m, vector<int> labels, double learningRate, int epochs){
-    // //Weight 1, weights in between input and hidden layer 1
-    // MatrixXd weight1 = MatrixXd::Random(128, 784);
-    // weight1 = (weight1 +  MatrixXd::Constant(128, 784, 1.))*sqrt(2.0/784);
-    // MatrixXd bias1 = MatrixXd::Random(128, 1);
-    // bias1 = (bias1 + MatrixXd::Constant(128, 1, 1.));
-    // //Weight 2, weights in between hidden layer 1 and 2
-    // MatrixXd weight2 = MatrixXd::Random(64, 128);
-    // weight2 = (weight2 + MatrixXd::Constant(64, 128, 1.))*sqrt(2.0/128);
-    // MatrixXd bias2 = MatrixXd::Random(64, 1);
-    // bias2 = (bias2 + MatrixXd::Constant(64, 1, 1.));
-    // //Weight 3, weights in between hidden layer 2 and output
-    // MatrixXd weight3 = MatrixXd::Random(10, 64);
-    // weight3 = (weight3 + MatrixXd::Constant(10, 64, 1.))*sqrt(2.0/64);
-    // MatrixXd bias3 = MatrixXd::Random(10, 1);
-    // bias3 = (bias3 + MatrixXd::Constant(10, 1, 1.));
-    // cout << weight1;
+MatrixXd softMaxPrime(MatrixXd x){
+    MatrixXd softmax = softMax(x);
+    MatrixXd derivative;
+    for(int i = 0; i < softmax.size(); i++){
+        for(int j = 0; j < softmax.size(); j++){
+            if(i == j){
+                derivative(i, j) = softmax(i) * (1-softmax(i));
+            }
+            else{
+                derivative(i, j) = -softmax(i)*softmax(j);
+            }
+            round(derivative(i,j));
+        }
+    }
+    return derivative;
+}
 
+//Autoencoder
+void autoencoder(MatrixXd m, MatrixXd target, double learningRate, int epochs){
     //Create Random number generator 0 - 1
     random_device rand;
     mt19937 gen(rand());
@@ -167,7 +167,6 @@ void autoencoder(MatrixXd m, vector<int> labels, double learningRate, int epochs
     for(int i = 0; i < 10; i++){
         bias3(i, 0) = dis(gen);
     }
-    cout << bias1 << "\n\n" << bias2 << "\n\n" << bias3;
 
     //Forward propagate
     //input layer size of 784
@@ -181,11 +180,12 @@ void autoencoder(MatrixXd m, vector<int> labels, double learningRate, int epochs
     //input to output size of 10
     MatrixXd z3 = (weight3 * a2) + bias3;
     MatrixXd a3 = softMax(z3);
-    // cout << z3 << "\n\n" << a3;
-
-    //compute losee
 
     //backward propagate
+    MatrixXd error = target - a3;
+    MatrixXd a3p = error * softMaxPrime(a3);
+    MatrixXd a2p = (a3p*weight3.transpose()) * sigmoidPrime(a2);
+    MatrixXd a1p = (a2p*weight2.transpose()) * sigmoidPrime(a1);
 
     //update weights and biases
     
@@ -204,15 +204,20 @@ void plotDigitInput(MatrixXd m, int index){
 int main() {
     //load mnist data and labels
     vector<double> data = loadData("mnist_train.csv");
-    vector<int> labels = loadLabels("mnist_train_targets.csv");
+    vector<double> labels = loadLabels("mnist_train_targets.csv");
+    int value = labels[25];
+    MatrixXd target(10, 1);
+    target = MatrixXd::Zero(10,1);
+    target(value,0) = 1.0;
+    cout << target;
 
     //Turn data into a matrix and print out
     MatrixXd matrix = Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
 
     //Call autoencoder function with mnist dataset
-    autoencoder(matrix.col(1), labels, 0.01, 10);
+    autoencoder(matrix.col(1), target, 0.01, 10);
     //put specidifed digit into digit.csv
-    cout << labels[25];
+    cout << labels[25] << "\n\n";
     plotDigitInput(matrix, 25);
     
 
