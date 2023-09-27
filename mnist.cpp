@@ -116,17 +116,9 @@ MatrixXd softMaxPrime(MatrixXd x){
     MatrixXd softmax = softMax(x);
     MatrixXd derivative;
     for(int i = 0; i < softmax.size(); i++){
-        for(int j = 0; j < softmax.size(); j++){
-            if(i == j){
-                derivative(i, j) = softmax(i) * (1-softmax(i));
-            }
-            else{
-                derivative(i, j) = -softmax(i)*softmax(j);
-            }
-            round(derivative(i,j));
-        }
+        x(i) = softmax(i) * (1 - softmax(i));   
     }
-    return derivative;
+    return x;
 }
 
 //Autoencoder
@@ -182,10 +174,30 @@ void autoencoder(MatrixXd m, MatrixXd target, double learningRate, int epochs){
     MatrixXd a3 = softMax(z3);
 
     //backward propagate
-    MatrixXd error = target - a3;
-    MatrixXd a3p = error * softMaxPrime(a3);
-    MatrixXd a2p = (a3p*weight3.transpose()) * sigmoidPrime(a2);
-    MatrixXd a1p = (a2p*weight2.transpose()) * sigmoidPrime(a1);
+
+    MatrixXd error = a3 - target;
+    MatrixXd delta1(10,1);
+    for(int i = 0; i < 10; i++){
+        delta1(i) = error(i) * softMaxPrime(z3)(i);
+    }
+    MatrixXd deltaW3 = delta1 * a2.transpose();
+    MatrixXd deltaB3 = delta1;
+
+    MatrixXd temp = weight3.transpose() * delta1;
+    MatrixXd delta2(64,1);
+    for(int i = 0; i < 64; i++){
+        delta2(i) = temp(i) * sigmoidPrime(z2)(i);
+    }
+    MatrixXd deltaW2 = delta2 * a1.transpose();
+    MatrixXd deltaB2 = delta2;
+    
+    temp = weight2.transpose() * delta2;
+    MatrixXd delta3(128,1);
+    for(int i = 0; i < 128; i++){
+        delta3(i) = temp(i) * sigmoidPrime(z1)(i);
+    }
+    MatrixXd deltaW1 = delta3 * a0.transpose();
+    MatrixXd deltaB1 = delta3;
 
     //update weights and biases
     
@@ -209,7 +221,7 @@ int main() {
     MatrixXd target(10, 1);
     target = MatrixXd::Zero(10,1);
     target(value,0) = 1.0;
-    cout << target;
+    //cout << target;
 
     //Turn data into a matrix and print out
     MatrixXd matrix = Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
@@ -217,7 +229,7 @@ int main() {
     //Call autoencoder function with mnist dataset
     autoencoder(matrix.col(1), target, 0.01, 10);
     //put specidifed digit into digit.csv
-    cout << labels[25] << "\n\n";
+    //cout << labels[25] << "\n\n";
     plotDigitInput(matrix, 25);
     
 
