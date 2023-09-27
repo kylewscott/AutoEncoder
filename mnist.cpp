@@ -160,47 +160,57 @@ void autoencoder(MatrixXd m, MatrixXd target, double learningRate, int epochs){
         bias3(i, 0) = dis(gen);
     }
 
-    //Forward propagate
-    //input layer size of 784
-    MatrixXd a0 = m;
-    //input to hidden layer 1 size of 128
-    MatrixXd z1 = (weight1 * a0) + bias1;
-    MatrixXd a1 = sigmoid(z1);
-    //input to hidden layer 2 size of 64
-    MatrixXd z2 = (weight2 * a1) + bias2;
-    MatrixXd a2 = sigmoid(z2);
-    //input to output size of 10
-    MatrixXd z3 = (weight3 * a2) + bias3;
-    MatrixXd a3 = softMax(z3);
+    for(int i = 0; i < 1; i++){
+        //Forward propagate
+        //input layer size of 784
+        MatrixXd a0 = m;
+        //input to hidden layer 1 size of 128
+        MatrixXd z1 = (weight1 * a0) + bias1;
+        MatrixXd a1 = sigmoid(z1);
+        //input to hidden layer 2 size of 64
+        MatrixXd z2 = (weight2 * a1) + bias2;
+        MatrixXd a2 = sigmoid(z2);
+        //input to output size of 10
+        MatrixXd z3 = (weight3 * a2) + bias3;
+        MatrixXd a3 = softMax(z3);
 
-    //backward propagate
+        //backward propagate
+        MatrixXd error = a3 - target;
+        MatrixXd delta1(10,1);
+        for(int i = 0; i < 10; i++){
+            delta1(i) = error(i) * softMaxPrime(z3)(i);
+        }
+        MatrixXd deltaW3 = delta1 * a2.transpose();
+        MatrixXd deltaB3 = delta1;
 
-    MatrixXd error = a3 - target;
-    MatrixXd delta1(10,1);
-    for(int i = 0; i < 10; i++){
-        delta1(i) = error(i) * softMaxPrime(z3)(i);
+        MatrixXd temp = weight3.transpose() * delta1;
+        MatrixXd delta2(64,1);
+        for(int i = 0; i < 64; i++){
+            delta2(i) = temp(i) * sigmoidPrime(z2)(i);
+        }
+        MatrixXd deltaW2 = delta2 * a1.transpose();
+        MatrixXd deltaB2 = delta2;
+        
+        temp = weight2.transpose() * delta2;
+        MatrixXd delta3(128,1);
+        for(int i = 0; i < 128; i++){
+            delta3(i) = temp(i) * sigmoidPrime(z1)(i);
+        }
+        MatrixXd deltaW1 = delta3 * a0.transpose();
+        MatrixXd deltaB1 = delta3;
+
+        //update weights and biases
+        weight3 = weight3 + learningRate * a2.transpose() * deltaW3;
+        bias3 = bias3 + learningRate * deltaB3;
+
+        weight2 = weight2 + learningRate * a1.transpose() * deltaW2;
+        bias2 = bias2 + learningRate * deltaB2;
+
+        weight1 = weight1 + learningRate * a0 * deltaW1;
+        bias1 = bias1 + learningRate * deltaB1;
+
+        double totalError = error.sum();
     }
-    MatrixXd deltaW3 = delta1 * a2.transpose();
-    MatrixXd deltaB3 = delta1;
-
-    MatrixXd temp = weight3.transpose() * delta1;
-    MatrixXd delta2(64,1);
-    for(int i = 0; i < 64; i++){
-        delta2(i) = temp(i) * sigmoidPrime(z2)(i);
-    }
-    MatrixXd deltaW2 = delta2 * a1.transpose();
-    MatrixXd deltaB2 = delta2;
-    
-    temp = weight2.transpose() * delta2;
-    MatrixXd delta3(128,1);
-    for(int i = 0; i < 128; i++){
-        delta3(i) = temp(i) * sigmoidPrime(z1)(i);
-    }
-    MatrixXd deltaW1 = delta3 * a0.transpose();
-    MatrixXd deltaB1 = delta3;
-
-    //update weights and biases
-    
 
 }
 
