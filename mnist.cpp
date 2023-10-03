@@ -3,10 +3,8 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <random>
 #include <C:\eigen-3.4.0\Eigen\Dense>
 
-using namespace Eigen;
 
 //Function to load in data as 1d vector
 int numRow;
@@ -66,65 +64,36 @@ std::vector<double> loadLabels(std::string filepath){
     return labels;
 }
 
-//Possible change to void functions?
 //Activation functions
-Eigen::VectorXd sigmoid(Eigen::VectorXd x){
-    // try to do this in-place using an Array view of the matrix
-    //x.array().exp().addTo(1).inverse();
-
-    for(size_t i = 0; i < x.size(); i++){
-        x(i) = (1/(1+exp(-x(i))));
-    }
+void sigmoid(Eigen::VectorXd& x){
+    x = 1.0/(1.0 + (-x.array()).exp());
+}
+Eigen::VectorXd sigmoidPrime(Eigen::VectorXd& x){
+    x = x.array() * (1 - x.array());
     return x;
 }
 
-Eigen::VectorXd sigmoidPrime(Eigen::VectorXd x){
-    for(size_t i = 0; i < x.size(); i++){
-        x(i) = x(i) * (1-x(i));
-    }
+void relu(Eigen::VectorXd& x){
+    x = x.cwiseMax(0.0);
+}
+Eigen::VectorXd reluPrime(Eigen::VectorXd& x){
+    x = (x.array() > 0).cast<double>();
     return x;
 }
 
-Eigen::VectorXd relu(Eigen::VectorXd x){
-    for(size_t i = 0; i < x.size(); i++){
-        x(i) = std::max(0.0, x(i));
-    }
-    return x;
+void softMax(Eigen::VectorXd& x){
+    x = x.array().exp() / x.array().exp().sum();
 }
-
-Eigen::VectorXd reluPrime(Eigen::VectorXd x){
-    for(size_t i = 0; i < x.size(); i++){
-        if(x(i) < 0){
-            x(i) = 0;
-        }
-        else{
-            x(i) = 1;
-        }
-    }
-    return x;
-}
-
-Eigen::VectorXd softMax(Eigen::VectorXd x){
-    double sum;
-    for(size_t i = 0; i < x.size(); i++){
-        sum += exp(x(i));
-    }
-    for(size_t i = 0; i < x.size(); i++){
-        x(i) = exp(x(i)) / sum;
-    }
-    return x;
-}
-
-Eigen::MatrixXd softMaxPrime(Eigen::VectorXd x){
-    Eigen::VectorXd softmax = softMax(x);
-    Eigen::MatrixXd derivative(10,10);
-    for(size_t i =0; i < softmax.size(); i++){
-        for(size_t j = 0; j < softmax.size(); j++){
+Eigen::MatrixXd softMaxPrime(Eigen::VectorXd& x){
+    softMax(x);
+    Eigen::MatrixXd derivative(x.size(), x.size());
+    for(size_t i =0; i < x.size(); i++){
+        for(size_t j = 0; j < x.size(); j++){
             if(i == j){
-                derivative(i, j) = softmax(i) * (1 - softmax(i));
+                derivative(i, j) = x(i) * (1 - x(i));
             }
             else{
-                derivative(i, j) = softmax(i) * softmax(j);
+                derivative(i, j) = x(i) * x(j);
             }
         }
     }
@@ -155,25 +124,26 @@ void autoencoder(Eigen::MatrixXd m, Eigen::VectorXd target, double learningRate,
     //Forward propagate
     //input to hidden layer 1 size of 128
     Eigen::VectorXd z1 = (weight1 * m) + bias1;
-    Eigen::VectorXd a1 = sigmoid(z1);
+    sigmoid(z1);
     //input to hidden layer 2 size of 64
-    Eigen::VectorXd z2 = (weight2 * a1) + bias2;
-    Eigen::VectorXd a2 = sigmoid(z2);
+    Eigen::VectorXd z2 = (weight2 * z1) + bias2;
+    sigmoid(z2);
     //input to output size of 10
-    Eigen::VectorXd z3 = (weight3 * a2) + bias3;
-    Eigen::VectorXd a3 = softMax(z3);
+    Eigen::VectorXd z3 = (weight3 * z2) + bias3;
+    softMax(z3);
 
     //backward propagate
-    Eigen::VectorXd error = a3 - target;
-    Eigen::VectorXd delta1 = softMaxPrime(a3) * error; //10x1
-    Eigen::VectorXd delta2 = (weight3.transpose() * delta1).array() * sigmoidPrime(a2).array(); //64x1
+
+    Eigen::VectorXd error = target - z3;
+    Eigen::VectorXd delta1 = softMaxPrime(z3) * error; //10x1
+    Eigen::VectorXd delta2 = (weight3.transpose() * delta1).array() * sigmoidPrime(z2).array(); //64x1
     Eigen::VectorXd delta3 = (weight2.transpose() * delta2).array() * sigmoidPrime(z1).array(); //128x1
 
     //update weights and biases
-    weight3 = (weight3.array() + learningRate).array() * (delta1 * a2.transpose()).array(); //10x64
+    weight3 = (weight3.array() + learningRate).array() * (delta1 * z2.transpose()).array(); //10x64
     bias3 = (bias3.array() + learningRate).array() * delta1.array();    //10x1
 
-    weight2 = (weight2.array() + learningRate).array() * (delta2 * a1.transpose()).array();  //64x128
+    weight2 = (weight2.array() + learningRate).array() * (delta2 * z1.transpose()).array();  //64x128
     bias2 = (bias2.array() + learningRate).array() * delta2.array();   //64x1
 
     weight1 = (weight1.array() + learningRate).array() * (delta3 * m.transpose()).array();  //128x784
@@ -181,6 +151,8 @@ void autoencoder(Eigen::MatrixXd m, Eigen::VectorXd target, double learningRate,
 
     //Calculate total error
     double totalError = std::sqrt(error.array().square().sum());
+    double accuracy = (1 - totalError / m.cols()) * 100;
+    std::cout << totalError << " " << accuracy;
 
 }
 
@@ -203,10 +175,10 @@ int main() {
     target(value,0) = 1.0;
 
     //Turn data into a matrix and print out
-    Eigen::MatrixXd matrix = Eigen::Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(data.data(), numRow, data.size() / numRow);
+    Eigen::MatrixXd matrix = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(data.data(), numRow, data.size() / numRow);
 
     //Call autoencoder function with mnist dataset
-    autoencoder(matrix.col(1), target, 0.01, 10);
+    autoencoder(matrix.col(1), target, 0.001, 10);
     //put specidifed digit into digit.csv
     plotDigitInput(matrix, 25);
     
@@ -215,6 +187,7 @@ int main() {
 }
 
 // *** TO DO ***
-//Go through and take out unecessary lines
-//Look into lambdas if needed
+//Replace all for loops with lambdas
 //Create classes for the layers and autoencoder
+//how to not use for loops for softMaxPrime
+//figure out how to use derivative activation functions as voids
