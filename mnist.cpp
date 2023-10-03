@@ -8,60 +8,46 @@
 
 //Function to load in data as 1d vector
 int numRow;
-std::vector<double> loadData(std::string filePath){
+std::vector<double> loadData(std::string filePath, std::string info){
     //open file
     std::ifstream nums;
     nums.open(filePath);
 
-    //Take in the first row of labels
+    //Take in the first row 
     std::string str;
     getline(nums, str);
 
-    //1d vector to store entire mnist dataset
+    //1d vector to store data
     std::vector<double> data;
 
-    //add mnist data to data
-    while(nums >> str){
-        int temp;
-        std::stringstream s(str);
-        while(s >> temp){
-            std::string stemp;
-            double number = temp / 255.0; //normalize data
-            data.push_back(number);
-            getline(s, stemp, ',');
+    //Getting mnist
+    if(info == "mnist"){
+        while(nums >> str){
+            int temp;
+            std::stringstream s(str);
+            while(s >> temp){
+                std::string stemp;
+                double number = temp / 255.0; //normalize data
+                data.push_back(number);
+                getline(s, stemp, ',');
+            }
+            numRow++;
         }
-        numRow++;
     }
-    
-    return data;
-
-}
-
-//function to load in labels as 1d vector
-std::vector<double> loadLabels(std::string filepath){
-    //open file
-    std::ifstream label;
-    label.open(filepath);
-
-    //take in first row
-    std::string str;
-    getline(label, str);
-
-    //create output vector
-    std::vector<double> labels;
-
-    //add each label into label
-    while(label >> str){
+    //Getting labels
+    if(info == "labels"){
+        while(nums >> str){
         int temp;
         std::stringstream s(str);
         while(s >> temp){
             std::string stemp;
             double number = temp;
-            labels.push_back(number);
+            data.push_back(number);
             getline(s, stemp);
         }
     }
-    return labels;
+    } 
+    return data;
 }
 
 //Activation functions
@@ -167,9 +153,10 @@ void plotDigitInput(Eigen::MatrixXd m, int index){
 
 int main() {
     //load mnist data and labels
-    std::vector<double> data = loadData("mnist_train.csv");
-    std::vector<double> labels = loadLabels("mnist_train_targets.csv");
-    int value = labels[25];
+    std::vector<double> data = loadData("mnist_train.csv", "mnist");
+    std::vector<double> labels = loadData("mnist_train_targets.csv", "labels");
+    //Creating target
+    int value = labels[1];
     Eigen::VectorXd target(10, 1);
     target = Eigen::VectorXd::Zero(10,1);
     target(value,0) = 1.0;
@@ -180,7 +167,7 @@ int main() {
     //Call autoencoder function with mnist dataset
     autoencoder(matrix.col(1), target, 0.001, 10);
     //put specidifed digit into digit.csv
-    plotDigitInput(matrix, 25);
+    plotDigitInput(matrix, 1);
     
     return 0;
 
@@ -191,3 +178,4 @@ int main() {
 //Create classes for the layers and autoencoder
 //how to not use for loops for softMaxPrime
 //figure out how to use derivative activation functions as voids
+//clean up label loading
