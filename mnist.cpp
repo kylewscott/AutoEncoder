@@ -5,11 +5,14 @@
 #include <vector>
 #include <C:\eigen-3.4.0\Eigen\Dense>
 
+#define MAX_SAMPLES 10 // number of samples to use for experimental training
+#define DEBUG_OUTPUT
+
 //Activation functions
 void sigmoid(Eigen::VectorXd& x){
     x = 1.0/(1.0 + (-x.array()).exp());
 }
-Eigen::VectorXd sigmoidPrime(Eigen::VectorXd& x){
+Eigen::VectorXd sigmoidPrime(Eigen::VectorXd x){
     x = x.array() * (1 - x.array());
     return x;
 }
@@ -25,7 +28,7 @@ Eigen::VectorXd reluPrime(Eigen::VectorXd& x){
 void softMax(Eigen::VectorXd& x){
     x = x.array().exp() / x.array().exp().sum();
 }
-Eigen::MatrixXd softMaxPrime(Eigen::VectorXd& x){
+Eigen::MatrixXd softMaxPrime(Eigen::VectorXd x){
     softMax(x);
     Eigen::MatrixXd derivative(x.size(), x.size());
     for(size_t i =0; i < x.size(); i++){
@@ -70,6 +73,12 @@ class Layer {
     Eigen::VectorXd getBias(){
         return bias;
     }
+    void updateWeights(Eigen::MatrixXd newWeight){
+        weight = newWeight;
+    }
+    void updateBiases(Eigen::VectorXd newBias){
+        bias = newBias;
+    }
 };
 
 class AutoEncoder {
@@ -80,63 +89,55 @@ class AutoEncoder {
     Eigen::VectorXd z1;
     Eigen::VectorXd z2;
     Eigen::VectorXd z3;
-    Eigen::MatrixXd weight1;
-    Eigen::MatrixXd weight2;
-    Eigen::MatrixXd weight3;
-    Eigen::VectorXd bias1;
-    Eigen::VectorXd bias2;
-    Eigen::VectorXd bias3;
     Eigen::VectorXd target;
     Eigen::VectorXd error;
     public:
+    //Constructor to initiate layers
     AutoEncoder(){
         //initialize layers
         layer1 = Layer(128, 784);
         layer2 = Layer(64, 128);
         layer3 = Layer(10, 64);
     }
-    void setWeights(){
-        //set weights
-        weight1 = layer1.getWeight();
-        weight2 = layer2.getWeight();
-        weight3 = layer3.getWeight();
-    }
-    void setBiases(){
-        //set biases
-        bias1 = layer1.getBias();
-        bias2 = layer2.getBias();
-        bias3 = layer3.getBias();
-    }
-    void setTarget(int val){
-        //Set the target
-        target = Eigen::VectorXd::Zero(10); 
-        target(val) = 1.0;
-    }
-    void feedForward(Eigen::VectorXd input){
-        //Forward propagate and activate
-        z1 = (weight1 * input) + bias1;
-        sigmoid(z1);
-        z2 = (weight2 * z1)  + bias2;
-        sigmoid(z2);
-        z3 = (weight3 * z2) + bias3;
-        softMax(z3);
-    }
-    Eigen::VectorXd getError(){
-        //Calculate the error
-        return target - z3;
-    }
-    void backPropagate(double learningRate, Eigen::VectorXd input){
-        //Back propagatge
-        Eigen::VectorXd delta1 = softMaxPrime(z3) * (target - z3); //10x1
-        Eigen::VectorXd delta2 = (weight3.transpose() * delta1).array() * sigmoidPrime(z2).array(); //64x1
-        Eigen::VectorXd delta3 = (weight2.transpose() * delta2).array() * sigmoidPrime(z1).array(); //128x1
-        //Update Weights and Biases
-        weight3 = weight3.array() - (learningRate * (delta1 * z2.transpose())).array();
-        bias3 = (bias3 - (learningRate * delta1));
-        weight2 = weight2.array() - (learningRate * (delta2 * z1.transpose())).array();
-        bias2 = (bias2 - (learningRate * delta2));
-        weight1 = weight1.array() - (learningRate * (delta3 * input.transpose())).array();
-        bias1 = (bias1 - (learningRate * delta3));
+    //function to train data
+    void train(Eigen::MatrixXd m, std::vector<double> labels, double learningRate, int epochs){
+        for(size_t i = 0; i < epochs; i++){
+            double tot_err = 0;
+            for(size_t sample = 0; sample < MAX_SAMPLES; ++sample){
+                //set target
+                int val = labels[sample];
+                target = Eigen::VectorXd::Zero(10); 
+                target(val) = 1.0;
+                //Feed forward 
+                z1 = (layer1.getWeight() * m.col(sample)) + layer1.getBias();
+                sigmoid(z1);
+                z2 = (layer2.getWeight() * z1)  + layer2.getBias();
+                sigmoid(z2);
+                z3 = (layer3.getWeight() * z2) + layer3.getBias();
+                softMax(z3);
+                //find error
+                Eigen::VectorXd err = target - z3;;
+                err.array() /= 10;
+                tot_err += err.array().abs().sum();
+                //Back Propagate
+                Eigen::VectorXd delta1 = softMaxPrime(z3) * (target - z3); //10x1
+                Eigen::VectorXd delta2 = (layer3.getWeight().transpose() * delta1).array() * sigmoidPrime(z2).array(); //64x1
+                Eigen::VectorXd delta3 = (layer2.getWeight().transpose() * delta2).array() * sigmoidPrime(z1).array(); //128x1
+                //Update Weights and Biases
+                layer3.updateWeights(layer3.getWeight().array() - (learningRate * (delta1 * z2.transpose())).array());
+                layer3.updateBiases(layer3.getBias() - (learningRate * delta1));
+                layer2.updateWeights(layer2.getWeight().array() - (learningRate * (delta2 * z1.transpose())).array());
+                layer2.updateBiases(layer2.getBias() - (learningRate * delta2));
+                layer1.updateWeights(layer1.getWeight().array() - (learningRate * (delta3 * m.col(sample).transpose())).array());
+                layer1.updateBiases(layer1.getBias() - (learningRate * delta3));
+            }
+            //Calculate accuracy
+            double accuracy = (1-(tot_err/MAX_SAMPLES)) * 100;
+            //Display accuracy of each epoch
+            #ifdef DEBUG_OUTPUT
+                std::cout << "epoch: " << i+1 << ", " << "classification accuracy: " << accuracy << "\n";
+            #endif
+        }
     }
 };
 
@@ -202,29 +203,8 @@ int main() {
     //put specidifed digit into digit.csv
     plotDigitInput(matrix, 1);
 
-    //Call autoencoder
-    int epochs = 10;
     AutoEncoder a;
-    //loop thorugh numbers for each epoch
-    for(size_t i = 0; i < epochs; i++){
-        double totalError = 0.0;
-        for(size_t n = 0; n < 10; n++){
-            //Set target, weights, and biases
-            a.setTarget(labels[n]);
-            a.setWeights();
-            a.setBiases();  
-            //forward propagate
-            a.feedForward(matrix.col(n));
-            //find error and add to totalError
-            Eigen::VectorXd error = a.getError();
-            totalError += std::sqrt(error.array().square().sum());
-            //Back propagate
-            a.backPropagate(0.01, matrix.col(n));
-        }
-        //Calculate accuracy of each epoch
-        double accuracy = ((1-totalError) / 10) * 100;
-        std::cout << "epoch: " << i+1 << ", " << "classification accuracy: " << accuracy << "\n";
-    }
+    a.train(matrix, labels, 0.001, 10);
     
     return 0;
 
