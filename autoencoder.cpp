@@ -3,9 +3,13 @@
 #define DEBUG_OUTPUT
 //Constructor
 AutoEncoder::AutoEncoder() {
+    // layer1 = Layer(256, 784);
+    // layer2 = Layer(128, 256);
+    // layer3 = Layer(32, 128);
     layer1 = Layer(128, 784);
     layer2 = Layer(64, 128);
     layer3 = Layer(10, 64);
+
 }
 void AutoEncoder::train(Eigen::MatrixXd m, std::vector<double> labels, double learningRate, int epochs) {
     Activation a;
@@ -17,18 +21,15 @@ void AutoEncoder::train(Eigen::MatrixXd m, std::vector<double> labels, double le
             target = Eigen::VectorXd::Zero(10); 
             target(val) = 1.0;
             //Feed forward 
-            z1 = (layer1.getWeight() * m.col(sample)) + layer1.getBias();
-            a.sigmoid(z1);
-            z2 = (layer2.getWeight() * z1)  + layer2.getBias();
-            a.sigmoid(z2);
-            z3 = (layer3.getWeight() * z2) + layer3.getBias();
-            a.softMax(z3);
+            layer1.feedForward(m.col(sample), "sigmoid");
+            layer2.feedForward(z1, "sigmoid");
+            layer3.feedForward(z2, "softMax");
             //find error
-            Eigen::VectorXd err = target - z3;;
-            err.array() /= 10;
+            Eigen::VectorXd err = z3-target;
+            err.array() /= MAX_SAMPLES;
             tot_err += err.array().abs().sum();
             //Back Propagate
-            Eigen::VectorXd delta1 = a.softMaxPrime(z3) * (target - z3); //10x1
+            Eigen::VectorXd delta1 = a.softMaxPrime(z3) * (z3-target); //10x1
             Eigen::VectorXd delta2 = (layer3.getWeight().transpose() * delta1).array() * a.sigmoidPrime(z2).array(); //64x1
             Eigen::VectorXd delta3 = (layer2.getWeight().transpose() * delta2).array() * a.sigmoidPrime(z1).array(); //128x1
             //Update Weights and Biases
