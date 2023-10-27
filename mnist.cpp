@@ -67,11 +67,11 @@ int main() {
     Eigen::MatrixXd matrix = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(data.data(), numRow, data.size() / numRow);
     //put specidifed digit into digit.csv
     plotDigitInput(matrix, 1);
-    //Train mnist digits
-    AutoEncoder a;
-    a.train(matrix, labels, 0.001, 10);
+    //Create autoencoder with a lr of 0.001 and 10 epochs
+    AutoEncoder a(0.001, 10);
+    //train the mnist data
+    a.train(matrix, labels);
     
     return 0;
-
 }
 
