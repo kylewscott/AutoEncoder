@@ -1,12 +1,12 @@
 #include "Layer.h"
 //Constructor
 Layer::Layer(){}
-Layer::Layer(int sizes...){
+Layer::Layer(int numLayers, int sizes...){
     //Loads sizes into the layerSizes vector
     std::va_list args;
     va_start(args, sizes);
     layerSizes.push_back(sizes);
-    for(int i = 0; i < sizeof(sizes)-1; ++i){
+    for(int i = 0; i < numLayers-1; ++i){
         layerSizes.push_back(va_arg(args, int));
     }
     va_end(args);

@@ -3,7 +3,7 @@
 #define DEBUG_OUTPUT
 //Constructor
 AutoEncoder::AutoEncoder(double lr, int epoch) {
-    layers = Layer(784, 128, 64, 10);
+    layers = Layer(4, 784, 128, 64, 10);
     learningRate = lr;
     epochs = epoch;
 }
