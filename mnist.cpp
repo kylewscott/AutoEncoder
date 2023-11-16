@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <bits/stdc++.h> 
 #include <C:\eigen-3.4.0\Eigen\Dense>
 #include "AutoEncoder.h"
 
@@ -50,7 +51,7 @@ std::vector<double> loadData(std::string filePath, std::string info){
     return data;
 }
 
-//Function to put specified digit into digit.csv 
+//Function to put specified digit into digit.csv for plotting
 void plotDigitInput(Eigen::MatrixXd m, int index){
     std::ofstream outputfile("digit.csv", std::ios::out);
     for(size_t i = 0; i < 784; i++){
@@ -60,18 +61,26 @@ void plotDigitInput(Eigen::MatrixXd m, int index){
 }
 
 int main() {
+    //track execution time
+    time_t start, end;
+    time(&start);
     //load mnist data and labels
     std::vector<double> data = loadData("mnist_train.csv", "mnist");
     std::vector<double> labels = loadData("mnist_train_targets.csv", "labels");
-    //Turn data into a matrix and print out
+    //Turn data into a matrix
     Eigen::MatrixXd matrix = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(data.data(), numRow, data.size() / numRow);
     //put specidifed digit into digit.csv
     plotDigitInput(matrix, 1);
-    //Create autoencoder with a lr of 0.001 and 10 epochs
-    AutoEncoder a(0.001, 10);
-    //train the mnist data
-    a.train(matrix, labels);
-    
+    //Create autoencoder with 4 layers
+    AutoEncoder a(4, 784, 128, 64, 10);
+    //train the mnist data with learning rate of .0001, 10 epochs, and batches of 32
+    a.train(matrix, labels, .00008, 10, 32);
+    //tend time tracking
+    time(&end);
+    //calculate time
+    double timeTaken = double(end - start);
+    std::cout << "\n" << "execution time: " << timeTaken << " sec" << "\n";
+
     return 0;
 }
 

@@ -23,7 +23,7 @@ class Layer {
     public:
         //template <typename... Args>
         Layer();
-        Layer(int numLayers, int sizes...);
+        Layer(int numLayers, std::vector<int> inputLayers);
         void feedForward(Eigen::VectorXd input, Eigen::VectorXd target);
         void backwardsPropagation(Eigen::VectorXd input, double lr);
         void updateWeightsBiases(double lr);

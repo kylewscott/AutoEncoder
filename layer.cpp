@@ -1,15 +1,9 @@
 #include "Layer.h"
 //Constructor
 Layer::Layer(){}
-Layer::Layer(int numLayers, int sizes...) {
-    //Loads sizes into the layerSizes vector
-    std::va_list args;
-    va_start(args, sizes);
-    layerSizes.push_back(sizes);
-    for(size_t i = 0; i < numLayers-1; ++i){
-        layerSizes.push_back(va_arg(args, int));
-    }
-    va_end(args);
+Layer::Layer(int numLayers, std::vector<int> inputLayers) {
+    //Layer sizes given from user
+    layerSizes = inputLayers;
     //initialize weights, biases, and gradients
     for(size_t i = 0; i < layerSizes.size()-1; i++){
         weights.push_back(Eigen::MatrixXd::Random(layerSizes[i+1], layerSizes[i]) * std::sqrt(2.0 / layerSizes[i+1]));
