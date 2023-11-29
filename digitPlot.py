@@ -2,6 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 
+############################################################
+# PLots the digit found inisde the digit.csv file which is #
+# created using the plotDigitInput function in mnist.cpp   #
+############################################################
+
 data = []
 with open('digit.csv', mode='r') as file:
     reader = csv.reader(file)
