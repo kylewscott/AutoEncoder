@@ -19,7 +19,7 @@ Implementation of an Autoencoder using c++ with the Eigne linear algebra library
 - Create autoencoder object by passing in the number of layers as an int followed by the size of input layer, size of hidden layers, and size of output layer all as integers
 - Use train function by passing in the data to be trained as an Eigen Matrix "Eigen::MatrixXd", your labels for the data as a std vector of doubles,
     your learning rate as a double, the number of epochs as an int, and your batch sizes as an int
-
+- View the mnist.cpp file for reference
 
 
 
