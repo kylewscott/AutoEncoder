@@ -1,5 +1,5 @@
 # Neural Network 
-Implementation of an Autoencoder using c++ with the Eigne linear algebra library. This autoencoder implements mini-batch as well as adam optimization for parameter updates.
+Implementation of an Autoencoder using c++ with the Eigen linear algebra library. This autoencoder implements mini-batch as well as adam optimization for parameter updates.
 
 ## Requirements:
 
