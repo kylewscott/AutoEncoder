@@ -8,7 +8,7 @@ Implementation of an Autoencoder using c++ with the Eigne linear algebra library
 
 ## Running:
 
-- Download the NeuralNetwork folder of clone this repository
+- Download the NeuralNetwork folder or clone this repository
 - Create main file outside of NeuralNework folder where autoencoder will be used 
 - Compile with " g++ NeuralNetwork/activation.cpp NeuralNetwork/layer.cpp NeuralNetwork/autoencoder.cpp "nameOfYourMainFile".cpp "
 
