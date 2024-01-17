@@ -1,4 +1,4 @@
-# Neural Network 
+# AutoEncoder
 Implementation of an Autoencoder using c++ with the Eigen linear algebra library. 
 
 ## Requirements:
