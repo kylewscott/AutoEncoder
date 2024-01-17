@@ -1,9 +1,9 @@
 # Neural Network 
-Implementation of an Autoencoder using c++ with the Eigen linear algebra library. This autoencoder implements mini-batch as well as adam optimization for parameter updates.
+Implementation of an Autoencoder using c++ with the Eigen linear algebra library. 
 
 ## Requirements:
 
-- C++ compiler (I use MinGW version 6.3)
+- C++ compiler 
 - Eigen Library Downloaded (https://eigen.tuxfamily.org/index.php?title=Main_Page#Download)
 
 ## Running:
